@@ -1,0 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Sarina&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-deep-blue: #1b365d;
+  --color-orange-jreng: #ff8c00;
+  --color-soft-turquoise: #40e0d0;
+  --color-sandy-beige: #f5deb3;
+  --font-jakarta-plus: "Plus Jakarta Sans", sans-serif;
+  --font-sarina: "Sarina", cursive;
+}

@@ -1,0 +1,20 @@
+---
+import EditPostForm from "@components/FormEdit";
+import Layout from "@layouts/Layout.astro";
+import { getContentBySlug } from "@lib/data";
+
+export async function getStaticPaths({ params }: { params: { slug: string } }) {
+  const slug = params.slug;
+  await getContentBySlug(slug);
+}
+
+const { slug } = Astro.params;
+const data = await getContentBySlug(slug);
+const bucketUrl = import.meta.env.SUPABASE_BUCKET;
+export const prerender = false;
+---
+
+<Layout pagesTitle="Edit">
+  <h1 class="text-center text-3xl font-bold underline">Edit Content</h1>
+  {data && <EditPostForm content={data} bucketUrl={bucketUrl} client:load />}
+</Layout>

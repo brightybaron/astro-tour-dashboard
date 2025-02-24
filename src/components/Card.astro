@@ -1,0 +1,119 @@
+---
+// src/components/TourCard.astro
+interface Props {
+  title: string;
+  price: number;
+  image: string;
+  tipe: string;
+  duration: string;
+}
+
+const { title, price, image, tipe, duration } = Astro.props;
+---
+
+<div class="bg-white shadow-md overflow-hidden">
+  <!-- Image Container with Price Overlay -->
+  <div class="relative overflow-hidden">
+    <a
+      href={`/paket-trip/${title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")}`}
+    >
+      <img
+        src={image}
+        alt={title}
+        class="object-cover hover:scale-105 transition-all duration-300"
+        loading="lazy"
+      />
+    </a>
+    <div class="absolute bottom-0 left-4">
+      <span class="bg-teal-800 text-white px-3 py-1 rounded-sm font-semibold">
+        Rp. {price.toLocaleString("id-ID")}
+      </span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="p-4">
+    <h3 class="text-xl font-bold mb-3">
+      {title}
+    </h3>
+
+    <div class="flex items-center justify-between">
+      <!-- Rating and Reviews -->
+      <div class="flex items-center text-sm text-slate-700 font-medium gap-2">
+        <div class="flex items-center bg-gray-200 rounded-full px-3 py-1">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 mr-1"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="text-sm">{duration}</span>
+        </div>
+        <span class="flex items-center bg-gray-200 rounded-full px-3 py-1">
+          <span>
+            {
+              tipe === "Private" ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4 mr-1"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <>
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </>
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4 mr-1"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </>
+                </svg>
+              )
+            }
+          </span>
+          {tipe} Trip
+        </span>
+      </div>
+
+      <a
+        href={`/paket/paket-satu}`}
+        class="flex bg-deep-blue text-white hover:bg-blue-900 hover:scale-105 hover:transition-all hover:duration-300 px-3 py-1 rounded-lg items-center text-sm font-medium"
+      >
+        Details
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+---
+import Navbar from "@components/Navbar";
+import "@styles/global.css";
+
+const isHome = Astro.url.pathname === "/" ? true : false;
+
+const { pagesTitle } = Astro.props;
+const pageTitle = Astro.url.pathname === "/" ? "Dashboard" : pagesTitle;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/logo.png" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle || pagesTitle} | Cerita Tour</title>
+  </head>
+  <body class="font-jakarta-plus">
+    <Navbar bgNav={isHome} client:load />
+    <div class={isHome ? "mt-18" : "sm:mt-26 mt-18"}></div>
+    <slot />
+    <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 sm:gap-y-0 gap-y-8"
+      >
+        <div class="gap-y-2">
+          <h3 class="text-lg font-bold underline mb-4">For Travellers</h3>
+          <div class="flex flex-col text-sm gap-y-2">
+            <a href="#">Why Us?</a>
+            <a href="#">For Travellers</a>
+            <a href="#">FAQ</a>
+            <a href="#">Terms & Conditions</a>
+          </div>
+        </div>
+        <div class="flex flex-col gap-y-2">
+          <h3 class="text-lg font-bold underline mb-4">Our Office</h3>
+          <p class="text-sm">
+            Jl. Pasir Raya No.23 PPI Manyar, Gresik, Jawa Timur 61151
+          </p>
+          <p class="text-sm">Phone: +62 812 3456 789</p>
+          <p class="text-sm">Email: 1YxZa@example.com</p>
+        </div>
+      </div>
+      <div class="mt-8 py-8">
+        <p class="text-sm">
+          &copy; {new Date().getFullYear()} Badak Gunung - Travel with Style.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

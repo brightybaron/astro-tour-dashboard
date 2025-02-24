@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Post {
+  id           String   @id @default(cuid())
+  nama         String
+  slug         String   @unique
+  lokasi       String
+  jenistrip    String
+  highlight    String[]
+  destinasi    String[]
+  fasilitas    String[]
+  harga        String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  itineraries  Json
+  descriptions Json
+  images       Image[]
+
+  @@index([slug])
+}
+
+model Image {
+  id     String @id @default(uuid())
+  url    String
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@index([postId])
+}
