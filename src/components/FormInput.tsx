@@ -21,14 +21,18 @@ const CreatePostForm: React.FC = () => {
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showImageError, setShowImageError] = useState(false);
 
-  // Constants for validation
-  const MAX_IMAGES = 5; // Making this consistent with UI text
-  const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15MB
+  // Constants for validation - consistent values
+  const MAX_IMAGES = 5;
+  const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15MB - made consistent with UI text
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
     const validFiles = files.filter((file) => file.size <= MAX_IMAGE_SIZE);
+
+    // Reset image error state when files are added
+    setShowImageError(false);
 
     if (files.length !== validFiles.length) {
       alert(`Some images exceed the maximum size of 10MB and were not added.`);
@@ -43,11 +47,7 @@ const CreatePostForm: React.FC = () => {
   };
 
   const handleRemoveImage = (index: number) => {
-    if (confirm("Are you sure you want to remove this image?")) {
-      setSelectedImages((prevImages) =>
-        prevImages.filter((_, i) => i !== index)
-      );
-    }
+    setSelectedImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
   const handleItineraryChange = (
@@ -79,11 +79,9 @@ const CreatePostForm: React.FC = () => {
       return;
     }
 
-    if (confirm("Are you sure you want to remove this itinerary item?")) {
-      const updatedItineraries = [...itineraries];
-      updatedItineraries[dayIndex].items.splice(index, 1);
-      setItineraries(updatedItineraries);
-    }
+    const updatedItineraries = [...itineraries];
+    updatedItineraries[dayIndex].items.splice(index, 1);
+    setItineraries(updatedItineraries);
   };
 
   const handleAddDay = () => {
@@ -102,15 +100,9 @@ const CreatePostForm: React.FC = () => {
       return;
     }
 
-    if (
-      confirm(
-        "Are you sure you want to remove this entire day? All items will be lost."
-      )
-    ) {
-      const updatedItineraries = [...itineraries];
-      updatedItineraries.splice(dayIndex, 1);
-      setItineraries(updatedItineraries);
-    }
+    const updatedItineraries = [...itineraries];
+    updatedItineraries.splice(dayIndex, 1);
+    setItineraries(updatedItineraries);
   };
 
   const handleDescriptionChange = (index: number, value: string) => {
@@ -129,14 +121,17 @@ const CreatePostForm: React.FC = () => {
       return;
     }
 
-    if (confirm("Are you sure you want to remove this description?")) {
-      const updatedDescriptions = [...descriptions];
-      updatedDescriptions.splice(index, 1);
-      setDescriptions(updatedDescriptions);
-    }
+    const updatedDescriptions = [...descriptions];
+    updatedDescriptions.splice(index, 1);
+    setDescriptions(updatedDescriptions);
   };
 
   const validatePrices = (pricesText: string): boolean => {
+    if (!pricesText.trim()) {
+      alert("Please enter at least one price.");
+      return false;
+    }
+
     const prices = pricesText.split(",").map((p) => p.trim());
     for (const price of prices) {
       if (!/^\d+$/.test(price)) {
@@ -150,17 +145,22 @@ const CreatePostForm: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    // Check if images are selected
+    if (selectedImages.length === 0) {
+      setShowImageError(true);
+      return;
+    }
+
     // Validate prices before submission
-    const priceInput = (
-      event.currentTarget.elements.namedItem("harga") as HTMLInputElement
-    ).value;
-    if (!validatePrices(priceInput)) {
+    const form = event.currentTarget;
+    const priceInput = form.elements.namedItem("harga") as HTMLInputElement;
+
+    if (!priceInput || !validatePrices(priceInput.value)) {
       return;
     }
 
     setIsLoading(true);
-
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
 
     const mappedDescriptions = descriptions.map((description) => ({
       description,
@@ -177,11 +177,9 @@ const CreatePostForm: React.FC = () => {
     formData.append("itinerary", JSON.stringify(mappedItineraries));
     formData.append("description", JSON.stringify(mappedDescriptions));
 
-    if (selectedImages.length > 0) {
-      selectedImages.forEach((image, index) => {
-        formData.append(`photos[${index}]`, image);
-      });
-    }
+    selectedImages.forEach((image, index) => {
+      formData.append(`photos[${index}]`, image);
+    });
 
     try {
       const response = await fetch("/api/create-post", {
@@ -191,22 +189,20 @@ const CreatePostForm: React.FC = () => {
 
       if (response.ok) {
         alert("Post created successfully!");
-        // event.currentTarget.reset(); // Reset the form fields
         setSelectedImages([]);
         setDescriptions([""]);
         setItineraries([{ title: "", items: [{ time: "", details: "" }] }]);
         window.location.href = "/dashboard";
-      } else if (response.status === 400) {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message}`);
-        console.log("Error submitting form", errorData);
       } else {
-        alert("Error submitting form: " + response.statusText);
-        console.log("Error submitting form", response.statusText);
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: response.statusText }));
+        alert(`Error: ${errorData.message || "An unknown error occurred"}`);
+        console.log("Error submitting form:", errorData);
       }
     } catch (error) {
       alert("Error submitting form. Please try again later.");
-      console.log("Error submitting form", error);
+      console.error("Error submitting form:", error);
     } finally {
       setIsLoading(false);
     }
@@ -326,9 +322,13 @@ const CreatePostForm: React.FC = () => {
           id="harga"
           name="harga"
           className="mt-1 block w-full py-1 px-2 text-sm border border-gray-300 rounded-md"
-          placeholder="Harga (comma separated, only numbers) e.g. 350, 1.500"
+          placeholder="Harga (comma separated, only numbers) e.g. 350, 1500"
           required
         />
+        <p className="text-xs text-gray-500 mt-1">
+          Gunakan angka tanpa titik atau koma sebagai pemisah ribuan (contoh:
+          1500, bukan 1.500)
+        </p>
       </div>
 
       {/* Photos */}
@@ -337,9 +337,16 @@ const CreatePostForm: React.FC = () => {
           htmlFor="file-upload"
           className="block font-medium leading-6 text-gray-900"
         >
-          Photos
+          Photos{" "}
+          {showImageError && (
+            <span className="text-red-500 text-sm ml-2">
+              * Wajib upload minimal 1 foto
+            </span>
+          )}
         </label>
-        <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
+        <div
+          className={`mt-2 flex justify-center rounded-lg border border-dashed ${showImageError ? "border-red-500" : "border-gray-900/25"} px-6 py-10`}
+        >
           <div className="text-center">
             <svg
               className="mx-auto h-12 w-12 text-gray-300"
@@ -371,7 +378,6 @@ const CreatePostForm: React.FC = () => {
                   className="sr-only"
                   accept="image/*"
                   onChange={handleFileChange}
-                  required
                 />
               </label>
               <p className="pl-1">or drag and drop</p>
@@ -389,7 +395,7 @@ const CreatePostForm: React.FC = () => {
                   />
                   <button
                     type="button"
-                    className="remove-image-btn absolute top-2 right-2 bg-red-600 text-white rounded-full p-1"
+                    className="remove-image-btn absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 transition-colors"
                     onClick={() => handleRemoveImage(index)}
                     aria-label="Remove Image"
                   >
@@ -427,7 +433,7 @@ const CreatePostForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleRemoveDay(dayIndex)}
-                  className="text-red-700 hover:text-red-700 flex items-center"
+                  className="text-red-700 hover:text-red-900 flex items-center transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -500,7 +506,7 @@ const CreatePostForm: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleRemoveItinerary(dayIndex, index)}
-                      className="text-red-700 hover:text-red-700"
+                      className="text-red-700 hover:text-red-900 transition-colors"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -528,7 +534,7 @@ const CreatePostForm: React.FC = () => {
             <button
               type="button"
               onClick={() => handleAddItinerary(dayIndex)}
-              className="mt-2 text-sm text-blue-500 hover:text-blue-700"
+              className="mt-2 text-sm text-blue-500 hover:text-blue-700 transition-colors"
             >
               + Add Itinerary for Day {dayIndex + 1}
             </button>
@@ -538,7 +544,7 @@ const CreatePostForm: React.FC = () => {
         <button
           type="button"
           onClick={handleAddDay}
-          className="mt-2 text-sm font-bold text-blue-500 hover:text-blue-700"
+          className="mt-2 text-sm font-bold text-blue-500 hover:text-blue-700 transition-colors"
         >
           + Add Day
         </button>
@@ -569,7 +575,7 @@ const CreatePostForm: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleRemoveDescription(index)}
-                className="text-red-700 hover:text-red-700"
+                className="text-red-700 hover:text-red-900 transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -597,7 +603,7 @@ const CreatePostForm: React.FC = () => {
         <button
           type="button"
           onClick={handleAddDescription}
-          className="mt-2 text-sm font-medium text-blue-500 hover:text-blue-700"
+          className="mt-2 text-sm font-medium text-blue-500 hover:text-blue-700 transition-colors"
         >
           + Add Description
         </button>
@@ -607,12 +613,38 @@ const CreatePostForm: React.FC = () => {
       <div className="mt-6">
         <button
           type="submit"
-          className={`mt-4 px-4 py-2 w-full bg-indigo-600 text-white rounded-md hover:bg-indigo-700 hover:cursor-pointer ${
-            isLoading ? "opacity-50 cursor-not-allowed" : ""
+          className={`mt-4 px-4 py-2 w-full bg-indigo-600 text-white rounded-md hover:bg-indigo-700 hover:cursor-pointer flex justify-center items-center ${
+            isLoading ? "opacity-70 cursor-not-allowed" : ""
           }`}
           disabled={isLoading}
         >
-          {isLoading ? "Submitting..." : "Submit"}
+          {isLoading ? (
+            <>
+              <svg
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Submitting...
+            </>
+          ) : (
+            "Submit"
+          )}
         </button>
       </div>
     </form>
