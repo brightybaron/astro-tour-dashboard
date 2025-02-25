@@ -24,7 +24,7 @@ const CreatePostForm: React.FC = () => {
 
   // Constants for validation
   const MAX_IMAGES = 5; // Making this consistent with UI text
-  const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15MB
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
