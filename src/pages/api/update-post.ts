@@ -164,7 +164,11 @@ export async function PUT({ request }: { request: any }) {
           harga,
           itineraries,
           descriptions,
-          images: { connect: newImageIds.map((id) => ({ id })) },
+          images: {
+            connect: [...existingImageIds, ...newImageIds].map((id) => ({
+              id,
+            })),
+          },
         },
         include: { images: true },
       });
